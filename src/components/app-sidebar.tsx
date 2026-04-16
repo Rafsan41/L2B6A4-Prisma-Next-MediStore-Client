@@ -1,109 +1,122 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Pill } from "lucide-react"
 
-import { NavDocuments } from "@/components/nav-documents"
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarRail,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon } from "lucide-react"
+import adminRoutes from "@/app/routes/adminRoutes"
+import sellerRoutes from "@/app/routes/sellerRoutes"
+import customerRoutes from "@/app/routes/customerRoutes"
+import type { RoleName, RouteGroup } from "@/app/types"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: (
-        <LayoutDashboardIcon
-        />
-      ),
-    },
-    {
-      title: "Seller Orders",
-      url: "/dashboard/sellerOrders",
-      icon: (
-        <ListIcon
-        />
-      ),
-    },
-    {
-      title: "Analytics",
-      url: "/dashboard/sellerAnalytics",
-      icon: (
-        <ChartBarIcon
-        />
-      ),
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: (
-        <Settings2Icon
-        />
-      ),
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: (
-        <CircleHelpIcon
-        />
-      ),
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: (
-        <SearchIcon
-        />
-      ),
-    },
-  ],
+export function AppSidebar({
+  admin,
+  ...props
+}: {
+  admin: { role: RoleName | string }
+  seller: { role: RoleName | string }
+  customer: { role: RoleName | string }
+} & React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname()
 
-}
+  let routes: RouteGroup[] = []
+  switch (admin.role as RoleName) {
+    case "Admin":
+      routes = adminRoutes
+      break
+    case "Seller":
+      routes = sellerRoutes
+      break
+    case "Customer":
+      routes = customerRoutes
+      break
+    default:
+      routes = []
+  }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const isActive = (url: string) => pathname === url
+
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
-            >
-              <a href="#">
-                <CommandIcon className="size-5!" />
-                <span className="text-base font-semibold">MediStore Inc.</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <Link
+          href="/"
+          className="mx-2 my-3 flex items-center gap-2 rounded-lg border bg-primary/10 px-3 py-2.5 text-lg font-bold text-foreground transition-colors hover:bg-primary/15 hover:text-primary"
+        >
+          <Pill className="size-5 text-primary" />
+          <span className="tracking-tight">MediStore</span>
+        </Link>
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        {/* <NavDocuments items={data.documents} /> */}
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        {routes.map((group) => (
+          <SidebarGroup key={group.title}>
+            <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items?.map((item) => {
+                  const hasChildren = item.items && item.items.length > 0
+
+                  if (hasChildren) {
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive(item.url)}
+                          className="font-medium"
+                        >
+                          <Link href={item.url}>{item.title}</Link>
+                        </SidebarMenuButton>
+                        <SidebarMenuSub>
+                          {item.items!.map((child) => (
+                            <SidebarMenuSubItem key={child.title}>
+                              <SidebarMenuSubButton
+                                asChild
+                                isActive={isActive(child.url)}
+                              >
+                                <Link href={child.url}>{child.title}</Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </SidebarMenuItem>
+                    )
+                  }
+
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.url)}
+                      >
+                        <Link href={item.url}>{item.title}</Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
+
+      <SidebarRail />
     </Sidebar>
   )
 }
