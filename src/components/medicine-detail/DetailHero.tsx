@@ -63,7 +63,9 @@ const DetailHero = ({ medicine, category }: DetailHeroProps) => {
   const router = useRouter()
   const { data: session } = authClient.useSession()
   const isLoggedIn = !!session?.user
-  const isSeller = (session?.user as any)?.role?.toUpperCase() === "SELLER"
+  const role = (session?.user as any)?.role?.toUpperCase()
+  const isSeller = role === "SELLER"
+  const isAdmin  = role === "ADMIN"
   const isOwnMedicine = isSeller && (session?.user as any)?.id === medicine.sellerId
   const addItem = useCartStore((state) => state.addItem)
 
@@ -162,7 +164,7 @@ const DetailHero = ({ medicine, category }: DetailHeroProps) => {
             </div>
           </div>
           <div className="flex gap-2 shrink-0">
-            {isOwnMedicine ? (
+            {isAdmin ? null : isOwnMedicine ? (
               <span className="rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
                 Your listing
               </span>
@@ -332,7 +334,7 @@ const DetailHero = ({ medicine, category }: DetailHeroProps) => {
             <Separator />
 
             {/* Quantity selector (customers only) */}
-            {!outOfStock && !isSeller && (
+            {!outOfStock && !isSeller && !isAdmin && (
               <div className="flex items-center gap-4">
                 <span className="text-sm font-medium">Quantity</span>
                 <div className="flex items-center gap-1 rounded-lg border p-1">
@@ -361,7 +363,12 @@ const DetailHero = ({ medicine, category }: DetailHeroProps) => {
 
             {/* CTA row — observed for sticky bar */}
             <div ref={ctaRef} className="flex flex-col gap-3 sm:flex-row">
-              {isOwnMedicine ? (
+              {isAdmin ? (
+                /* Admin — ordering not allowed */
+                <div className="flex-1 rounded-xl border bg-muted/40 px-4 py-3">
+                  <p className="text-sm font-medium text-muted-foreground">Admin accounts cannot place orders.</p>
+                </div>
+              ) : isOwnMedicine ? (
                 /* Own medicine — no ordering allowed */
                 <div className="flex-1 rounded-xl border bg-primary/5 px-4 py-3">
                   <p className="text-sm font-medium text-primary">This is your own medicine listing.</p>

@@ -79,7 +79,9 @@ const ProductCard = ({ medicine, featured }: ProductCardProps) => {
   const [customQty, setCustomQty] = useState("")
   const addItem = useCartStore((state) => state.addItem)
   const { data: session } = authClient.useSession()
-  const isSeller = (session?.user as any)?.role?.toUpperCase() === "SELLER"
+  const role = (session?.user as any)?.role?.toUpperCase()
+  const isSeller = role === "SELLER"
+  const isAdmin  = role === "ADMIN"
   const isOwnMedicine = isSeller && (session?.user as any)?.id === medicine.sellerId
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -268,7 +270,7 @@ const ProductCard = ({ medicine, featured }: ProductCardProps) => {
               )}
 
               {/* Add to Cart (customers only) */}
-              {!isSeller && (
+              {!isSeller && !isAdmin && (
                 <Button
                   size="sm"
                   className="gap-1.5"

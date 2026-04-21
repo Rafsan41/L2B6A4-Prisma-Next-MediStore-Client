@@ -6,6 +6,7 @@ import { ArrowRight, Star, ShoppingCart, Pill, FlaskConical, Droplets, Wind, Pac
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { medicineService } from "@/services/medicine.service"
+import { authClient } from "@/lib/auth-client"
 import type { Medicine } from "@/types/medicine"
 
 // ── Medicine placeholder ──────────────────────────────────
@@ -37,6 +38,9 @@ function MedicinePlaceholder({ form }: { form: string | null }) {
 export function MedicineCard() {
   const [medicines, setMedicines] = useState<Medicine[]>([])
   const [loading, setLoading] = useState(true)
+  const { data: session } = authClient.useSession()
+  const role = (session?.user as any)?.role?.toUpperCase()
+  const isCustomer = !role || role === "CUSTOMER"
 
   useEffect(() => {
     medicineService.getFeatured()
@@ -87,10 +91,12 @@ export function MedicineCard() {
                 <span className="text-lg font-bold text-primary">
                   ৳{parseFloat(medicine.price).toFixed(2)}
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                  <ShoppingCart className="size-3" />
-                  Add
-                </span>
+                {isCustomer && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                    <ShoppingCart className="size-3" />
+                    Add
+                  </span>
+                )}
               </div>
             </div>
           </Link>
